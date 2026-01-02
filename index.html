@@ -38,7 +38,7 @@
             padding-right: 2rem; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;
         }
         .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.5s ease-out; }
-        .accordion-content.open { max-height: 2000px; transition: max-height 1s ease-in-out; }
+        .accordion-content.open { max-height: 5000px; transition: max-height 1s ease-in-out; }
         .form-overlay { display: none; }
         .form-overlay.visible { display: flex; }
         .filter-btn.active { background-color: #2563EB; color: white; border-color: #2563EB; }
@@ -48,6 +48,10 @@
         /* Estilos Pantalla Login */
         #login-screen { position: fixed; inset: 0; background-color: #f1f5f9; z-index: 100; display: flex; justify-content: center; align-items: center; }
         #app-content { display: none; } 
+
+        /* Estilos Subtareas */
+        .subtask-item { transition: all 0.2s; }
+        .subtask-item.done span { text-decoration: line-through; color: #9ca3af; }
 
         @media print {
             body { background-color: white; }
@@ -65,7 +69,7 @@
         <div class="bg-white p-8 rounded-xl shadow-2xl text-center max-w-md w-full mx-4 border border-gray-100">
             <div class="mb-8">
                 <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-8 h-8 text-institutional" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    <svg class="w-8 h-8 text-institutional" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
                 </div>
                 <h1 class="text-2xl font-bold text-gray-800">Acceso Personal</h1>
                 <p class="text-gray-500 mt-1">Pablo Frixione</p>
@@ -105,9 +109,20 @@
                 </div>
                 <form id="add-task-form" class="space-y-4">
                     <input type="hidden" id="edit-task-id" name="edit-task-id">
-                    <div><label class="block text-sm font-medium text-gray-700">Descripción / Tarea</label><textarea id="requerimiento" name="requerimiento" rows="3" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-institutional focus:ring-institutional"></textarea></div>
+                    <div><label class="block text-sm font-medium text-gray-700">Descripción / Tarea</label><textarea id="requerimiento" name="requerimiento" rows="2" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-institutional focus:ring-institutional"></textarea></div>
+                    
+                    <div class="border border-gray-200 rounded-md p-3 bg-gray-50">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Check List (Subtareas)</label>
+                        <div class="flex gap-2 mb-2">
+                            <input type="text" id="new-subtask-input" placeholder="Nueva subtarea..." class="flex-1 rounded-md border-gray-300 shadow-sm text-sm focus:border-institutional focus:ring-institutional">
+                            <button type="button" id="add-subtask-btn" class="bg-blue-600 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-700">+</button>
+                        </div>
+                        <ul id="subtasks-list-edit" class="space-y-2 max-h-40 overflow-y-auto text-sm">
+                            </ul>
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><label class="block text-sm font-medium text-gray-700">Categoría</label><select id="rubro" name="rubro" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-institutional focus:ring-institutional"></select></div>
+                        <div><label class="block text-sm font-medium text-gray-700">Proyecto</label><select id="rubro" name="rubro" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-institutional focus:ring-institutional"></select></div>
                         <div><label class="block text-sm font-medium text-gray-700">Responsable</label><select id="responsable" name="responsable" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-institutional focus:ring-institutional"></select></div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -130,21 +145,21 @@
         </div>
         
         <div id="manage-responsables-overlay" class="form-overlay fixed inset-0 bg-gray-900 bg-opacity-75 items-center justify-center z-50 overflow-y-auto py-10"><div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg relative"><button id="close-manage-responsables-btn" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-3xl">&times;</button><h2 class="text-2xl font-bold mb-6 text-gray-800">Gestionar Responsables</h2><form id="add-responsable-form" class="flex gap-2 mb-4"><input type="text" id="new-responsable-name" placeholder="Nombre" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required><button type="submit" class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg">Añadir</button></form><div id="responsables-list-container" class="space-y-2 max-h-80 overflow-y-auto"></div></div></div>
-        <div id="manage-rubros-overlay" class="form-overlay fixed inset-0 bg-gray-900 bg-opacity-75 items-center justify-center z-50 overflow-y-auto py-10"><div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg relative"><button id="close-manage-rubros-btn" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-3xl">&times;</button><h2 class="text-2xl font-bold mb-6 text-gray-800">Gestionar Categorías</h2><form id="add-rubro-form" class="flex gap-2 mb-4"><input type="text" id="new-rubro-name" placeholder="Categoría" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required><button type="submit" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">Añadir</button></form><div id="rubros-list-container" class="space-y-2 max-h-80 overflow-y-auto"></div></div></div>
+        <div id="manage-rubros-overlay" class="form-overlay fixed inset-0 bg-gray-900 bg-opacity-75 items-center justify-center z-50 overflow-y-auto py-10"><div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg relative"><button id="close-manage-rubros-btn" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-3xl">&times;</button><h2 class="text-2xl font-bold mb-6 text-gray-800">Gestionar Proyectos</h2><form id="add-rubro-form" class="flex gap-2 mb-4"><input type="text" id="new-rubro-name" placeholder="Nuevo proyecto" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required><button type="submit" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">Añadir</button></form><div id="rubros-list-container" class="space-y-2 max-h-80 overflow-y-auto"></div></div></div>
         <div id="filter-overlay" class="form-overlay fixed inset-0 bg-gray-900 bg-opacity-75 items-center justify-center z-50 overflow-y-auto py-10"><div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-3xl relative"><button id="close-filter-btn" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-3xl">&times;</button><h2 class="text-2xl font-bold mb-6 text-gray-800">Filtros</h2><div class="space-y-6"><div><h3 class="text-md font-bold text-gray-700 mb-2">Estado</h3><div id="status-filters" class="flex flex-wrap items-center gap-2"><button class="filter-btn active py-1 px-3 rounded-full text-sm transition-colors border" data-filter-type="status" data-filter="Todos">Todos</button><button class="filter-btn py-1 px-3 rounded-full text-sm transition-colors border" data-filter-type="status" data-filter="Pendiente">Pendiente</button><button class="filter-btn py-1 px-3 rounded-full text-sm transition-colors border" data-filter-type="status" data-filter="En Proceso">En Proceso</button><button class="filter-btn py-1 px-3 rounded-full text-sm transition-colors border" data-filter-type="status" data-filter="Realizado">Realizado</button><button class="filter-btn py-1 px-3 rounded-full text-sm transition-colors border" data-filter-type="status" data-filter="Suspendido">Suspendido</button></div></div><div><h3 class="text-md font-bold text-gray-700 mb-2">Prioridad</h3><div id="priority-filters" class="flex flex-wrap items-center gap-2"><button class="filter-btn active py-1 px-3 rounded-full text-sm transition-colors border" data-filter-type="priority" data-filter="Todos">Todas</button><button class="filter-btn py-1 px-3 rounded-full text-sm transition-colors border" data-filter-type="priority" data-filter="Baja">Baja</button><button class="filter-btn py-1 px-3 rounded-full text-sm transition-colors border" data-filter-type="priority" data-filter="Media">Media</button><button class="filter-btn py-1 px-3 rounded-full text-sm transition-colors border" data-filter-type="priority" data-filter="Alta">Alta</button></div></div><div><h3 class="text-md font-bold text-gray-700 mb-2">Vencimiento</h3><div id="date-filters" class="flex flex-wrap items-center gap-2"><button class="filter-btn active py-1 px-3 rounded-full text-sm transition-colors border" data-filter-type="date" data-filter="Todas">Todas</button><button class="filter-btn py-1 px-3 rounded-full text-sm transition-colors border" data-filter-type="date" data-filter="Vencidas">Vencidas</button><button class="filter-btn py-1 px-3 rounded-full text-sm transition-colors border" data-filter-type="date" data-filter="Hoy">Vencen Hoy</button><button class="filter-btn py-1 px-3 rounded-full text-sm transition-colors border" data-filter-type="date" data-filter="Este Mes">Vencen este mes</button><button class="filter-btn py-1 px-3 rounded-full text-sm transition-colors border" data-filter-type="date" data-filter="Proximas">Próximas (7d)</button></div></div><div><h3 class="text-md font-bold text-gray-700 mb-2">Responsable</h3><div id="responsible-filters" class="flex flex-wrap items-center gap-2 max-h-40 overflow-y-auto"></div></div></div><div class="flex justify-end pt-6 border-t mt-6"><button id="close-filter-btn-bottom" class="bg-gray-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700 transition-colors">Cerrar</button></div></div></div>
-        <div id="import-overlay" class="form-overlay fixed inset-0 bg-gray-900 bg-opacity-75 items-center justify-center z-50 overflow-y-auto py-10"><div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg relative"><button id="close-import-btn" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-3xl">&times;</button><h2 class="text-2xl font-bold mb-6 text-gray-800">Importar Tareas</h2><div class="space-y-6"><div><p class="text-sm text-gray-600 mb-2">Suba un archivo CSV. Puede descargar la plantilla.</p><button id="download-template-btn" class="text-sm bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">Descargar Plantilla CSV</button></div><div class="border-t pt-4"><label for="csv-file-input" class="block text-sm font-medium text-gray-700 mb-2">Seleccionar archivo .csv</label><input type="file" id="csv-file-input" name="csv-file-input" accept=".csv" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-institutional/10 file:text-institutional hover:file:bg-institutional/20"></div><div id="import-feedback" class="text-sm text-red-600"></div><div class="flex justify-end pt-6 border-t mt-6 gap-4"><button id="close-import-btn-bottom" class="bg-gray-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700 transition-colors">Cerrar</button><button id="process-import-btn" class="bg-purple-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-purple-700 transition-colors">Procesar Importación</button></div></div></div></div>
+        <div id="import-overlay" class="form-overlay fixed inset-0 bg-gray-900 bg-opacity-75 items-center justify-center z-50 overflow-y-auto py-10"><div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg relative"><button id="close-import-btn" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-3xl">&times;</button><h2 class="text-2xl font-bold mb-6 text-gray-800">Importar Tareas</h2><div class="space-y-6"><div><p class="text-sm text-gray-600 mb-2">Suba un archivo CSV.</p><button id="download-template-btn" class="text-sm bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">Descargar Plantilla CSV</button></div><div class="border-t pt-4"><label for="csv-file-input" class="block text-sm font-medium text-gray-700 mb-2">Seleccionar archivo .csv</label><input type="file" id="csv-file-input" name="csv-file-input" accept=".csv" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-institutional/10 file:text-institutional hover:file:bg-institutional/20"></div><div id="import-feedback" class="text-sm text-red-600"></div><div class="flex justify-end pt-6 border-t mt-6 gap-4"><button id="close-import-btn-bottom" class="bg-gray-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700 transition-colors">Cerrar</button><button id="process-import-btn" class="bg-purple-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-purple-700 transition-colors">Procesar Importación</button></div></div></div></div>
 
         <div class="container mx-auto p-4 sm:p-6 lg:p-8">
             <header class="text-center mb-8">
                 <h1 class="text-3xl sm:text-4xl font-bold text-institutional">Check list Personal</h1>
                 <p class="text-xs text-gray-400 font-semibold mt-1">PABLO FRIXIONE</p>
-                <p class="text-md text-gray-600 mt-2">Panel de Control y Gestión</p>
+                <p class="text-md text-gray-600 mt-2">Gestión de Proyectos y Finanzas Personales</p>
             </header>
 
             <div id="controls" class="bg-white p-4 rounded-lg shadow-md mb-8 space-y-4">
                 <div class="flex flex-wrap items-center gap-2">
                     <button id="add-task-btn" class="bg-institutional text-white font-bold py-2 px-4 rounded-lg hover:bg-opacity-90 transition-colors">+ Añadir Tarea</button>
-                    <button id="manage-rubros-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">Categorías</button>
+                    <button id="manage-rubros-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">Proyectos</button>
                     <button id="manage-responsables-btn" class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">Responsables</button>
                     <button id="manage-filters-btn" class="bg-yellow-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-yellow-600 transition-colors">Filtros</button>
                     <button id="export-pdf-btn" class="bg-gray-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-700 transition-colors">Exportar a PDF</button>
@@ -174,7 +189,7 @@
     </div>
 
     <script>
-        // --- CONFIGURACIÓN DE FIREBASE: PERSONAL PABLO FRIXIONE ---
+        // --- CONFIGURACIÓN DE FIREBASE ---
         const firebaseConfig = {
             apiKey: "AIzaSyAdbyflkDL_6FqToeZZlV-mJaUK9ra8hYU",
             authDomain: "personal-pablo-frixione.firebaseapp.com",
@@ -190,7 +205,7 @@
         const auth = firebase.auth();
         const provider = new firebase.auth.GoogleAuthProvider();
 
-        // --- LÓGICA DE AUTENTICACIÓN ---
+        // --- AUTH ---
         const loginScreen = document.getElementById('login-screen');
         const appContent = document.getElementById('app-content');
         const loginBtn = document.getElementById('google-login-btn');
@@ -202,33 +217,18 @@
 
         loginBtn.addEventListener('click', () => {
             loginStatus.textContent = "Conectando con Google...";
-            auth.signInWithPopup(provider)
-                .catch((error) => {
-                    loginStatus.textContent = "Error: " + error.message;
-                    console.error(error);
-                });
+            auth.signInWithPopup(provider).catch((error) => { loginStatus.textContent = "Error: " + error.message; console.error(error); });
         });
-
-        logoutBtn.addEventListener('click', () => {
-            auth.signOut();
-        });
-
+        logoutBtn.addEventListener('click', () => auth.signOut());
         auth.onAuthStateChanged((user) => {
             if (user) {
-                loginScreen.style.display = 'none';
-                appContent.style.display = 'block';
-                userNameDisplay.textContent = user.displayName;
-                userEmailDisplay.textContent = user.email;
-                userPhotoDisplay.src = user.photoURL || "https://ui-avatars.com/api/?name=" + user.displayName;
+                loginScreen.style.display = 'none'; appContent.style.display = 'block';
+                userNameDisplay.textContent = user.displayName; userEmailDisplay.textContent = user.email; userPhotoDisplay.src = user.photoURL || "https://ui-avatars.com/api/?name=" + user.displayName;
                 loadInitialData(); 
-            } else {
-                loginScreen.style.display = 'flex';
-                appContent.style.display = 'none';
-                loginStatus.textContent = "";
-            }
+            } else { loginScreen.style.display = 'flex'; appContent.style.display = 'none'; loginStatus.textContent = ""; }
         });
 
-        // --- LÓGICA DE LA APLICACIÓN (Igual que antes) ---
+        // --- VARS ---
         let checklistData = [];
         let rubros = [];
         let responsables = []; 
@@ -238,7 +238,8 @@
         let currentPriorityFilter = 'Todos';
         let currentDateFilter = 'Todas';
         let currentResponsibleFilter = 'Todos'; 
-        let openRubros = new Set(); 
+        let openRubros = new Set();
+        let editingSubtasks = []; // Para el modal
 
         const statusOrder = ['Pendiente', 'En Proceso', 'Realizado', 'Suspendido'];
         const statusOptions = { 'Pendiente': 'bg-yellow-100 text-yellow-800 border-yellow-300', 'Realizado': 'bg-institutional/20 text-institutional border-institutional/40', 'En Proceso': 'bg-blue-100 text-blue-800 border-blue-300', 'Suspendido': 'bg-gray-100 text-gray-800 border-gray-300' };
@@ -246,37 +247,21 @@
         const priorityOptions = ['Baja', 'Media', 'Alta'];
         const priorityStyles = { 'Alta': 'bg-red-100 text-red-800 border-red-300', 'Media': 'bg-yellow-100 text-yellow-800 border-yellow-300', 'Baja': 'bg-gray-100 text-gray-800 border-gray-300' };
         
-        const rubroIcons = {
-            'default': `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>`
-        };
-        
+        const rubroIcons = { 'default': `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>` };
         const protectedRubros = ['Eliminado'];
         const protectedResponsables = ['Yo'];
 
         function loadInitialData() {
             const defaultRubros = ['Hogar', 'Trabajo', 'Finanzas', 'Salud', 'Eliminado'];
             const defaultResponsables = ['Yo', 'Familia', 'Otro'];
-            
             const rubrosPromise = database.ref('rubros').once('value');
             const responsablesPromise = database.ref('responsables').once('value');
-
             Promise.all([rubrosPromise, responsablesPromise]).then(([rubrosSnapshot, responsablesSnapshot]) => {
                 const rubrosData = rubrosSnapshot.val();
-                if (rubrosData && Array.isArray(rubrosData)) {
-                    rubros = rubrosData;
-                    if (!rubros.includes('Eliminado')) { rubros.push('Eliminado'); database.ref('rubros').set(rubros); }
-                } else { rubros = defaultRubros; database.ref('rubros').set(rubros); }
-                
+                if (rubrosData && Array.isArray(rubrosData)) { rubros = rubrosData; if (!rubros.includes('Eliminado')) { rubros.push('Eliminado'); database.ref('rubros').set(rubros); } } else { rubros = defaultRubros; database.ref('rubros').set(rubros); }
                 const responsablesData = responsablesSnapshot.val();
-                if (responsablesData && Array.isArray(responsablesData)) {
-                    responsables = responsablesData;
-                } else { responsables = defaultResponsables; database.ref('responsables').set(responsables); }
-                
-                loadTasks();
-                listenForTaskChanges(); 
-                updateRubroDropdown();
-                updateResponsableDropdown();
-                renderFilterModal(); 
+                if (responsablesData && Array.isArray(responsablesData)) { responsables = responsablesData; } else { responsables = defaultResponsables; database.ref('responsables').set(responsables); }
+                loadTasks(); listenForTaskChanges(); updateRubroDropdown(); updateResponsableDropdown(); renderFilterModal(); 
             });
         }
 
@@ -285,7 +270,7 @@
                 const data = snapshot.val();
                 if (data) { 
                     checklistData = Object.keys(data).map(key => { 
-                        return { ...data[key], id: key, prioridad: data[key].prioridad || 'Baja', costo: data[key].costo || 0, recurrence: data[key].recurrence || { type: 'none' } }; 
+                        return { ...data[key], id: key, prioridad: data[key].prioridad || 'Baja', costo: data[key].costo || 0, recurrence: data[key].recurrence || { type: 'none' }, subtasks: data[key].subtasks || [] }; 
                     }); 
                 } else { checklistData = []; }
                 renderChecklist(); 
@@ -293,8 +278,8 @@
         }
         
         function listenForTaskChanges() {
-            database.ref('tasks').on('child_added', (snapshot) => { const newTask = { ...snapshot.val(), id: snapshot.key }; if (!checklistData.find(task => task.id === newTask.id)) { checklistData.push(newTask); renderChecklist(); } });
-            database.ref('tasks').on('child_changed', (snapshot) => { const changedTask = { ...snapshot.val(), id: snapshot.key }; const index = checklistData.findIndex(task => task.id === changedTask.id); if (index > -1) { checklistData[index] = changedTask; renderChecklist(); } });
+            database.ref('tasks').on('child_added', (snapshot) => { const newTask = { ...snapshot.val(), id: snapshot.key, subtasks: snapshot.val().subtasks || [] }; if (!checklistData.find(task => task.id === newTask.id)) { checklistData.push(newTask); renderChecklist(); } });
+            database.ref('tasks').on('child_changed', (snapshot) => { const changedTask = { ...snapshot.val(), id: snapshot.key, subtasks: snapshot.val().subtasks || [] }; const index = checklistData.findIndex(task => task.id === changedTask.id); if (index > -1) { checklistData[index] = changedTask; renderChecklist(); } });
             database.ref('tasks').on('child_removed', (snapshot) => { const deletedTaskId = snapshot.key; checklistData = checklistData.filter(task => task.id !== deletedTaskId); renderChecklist(); });
         }
 
@@ -323,20 +308,69 @@
                         itemsToShow.forEach(item => {
                             const listItem = document.createElement('li'); listItem.className = 'px-4 py-3';
                             const taskRow = document.createElement('div'); taskRow.className = 'grid grid-cols-1 md:grid-cols-[1fr_90px_120px_140px_130px_140px_160px] items-center gap-x-4 gap-y-2';
-                            const requerimientoP = document.createElement('p'); requerimientoP.className = 'text-gray-800 font-medium col-span-full md:col-span-1 break-words'; requerimientoP.textContent = item.requerimiento; taskRow.appendChild(requerimientoP);
+                            
+                            const requerimientoDiv = document.createElement('div');
+                            requerimientoDiv.className = 'col-span-full md:col-span-1';
+                            const requerimientoP = document.createElement('p'); requerimientoP.className = 'text-gray-800 font-medium break-words'; requerimientoP.textContent = item.requerimiento;
+                            requerimientoDiv.appendChild(requerimientoP);
+                            
+                            // Contenedor de subtareas en la lista principal
+                            const subtasksDiv = document.createElement('div');
+                            subtasksDiv.id = `subtasks-container-${item.id}`;
+                            subtasksDiv.className = 'mt-2 pl-4 border-l-2 border-gray-200 hidden'; 
+                            if(item.subtasks && item.subtasks.length > 0) {
+                                item.subtasks.forEach((st, idx) => {
+                                    const stDiv = document.createElement('div'); stDiv.className = 'flex items-center gap-2 text-sm text-gray-600 mb-1';
+                                    stDiv.innerHTML = `<input type="checkbox" ${st.done ? 'checked' : ''} class="subtask-check cursor-pointer" data-task-id="${item.id}" data-subtask-idx="${idx}"> <span class="${st.done ? 'line-through text-gray-400' : ''}">${st.text}</span>`;
+                                    subtasksDiv.appendChild(stDiv);
+                                });
+                            }
+                            requerimientoDiv.appendChild(subtasksDiv);
+                            taskRow.appendChild(requerimientoDiv);
+
                             const prioritySelect = document.createElement('select'); prioritySelect.className = 'priority-select p-1 border rounded-md text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-institutional no-toggle w-full'; priorityOptions.forEach(prio => { const option = document.createElement('option'); option.value = prio; option.textContent = prio; if (item.prioridad === prio) option.selected = true; prioritySelect.add(option); }); prioritySelect.className += ` ${priorityStyles[item.prioridad] || priorityStyles['Baja']}`; prioritySelect.onchange = (e) => { handleFieldChange(e, item.id, 'prioridad'); }; taskRow.appendChild(prioritySelect);
                             const costDiv = document.createElement('div'); costDiv.className = 'text-center no-toggle truncate'; const costVal = item.costo ? parseFloat(item.costo) : 0; costDiv.innerHTML = `<span class="text-sm text-gray-600 font-medium">${formatMoney(costVal)}</span>`; taskRow.appendChild(costDiv);
                             const responsibleSelect = document.createElement('select'); responsibleSelect.className = 'responsible-select p-1 border-b focus:border-institutional focus:outline-none w-full text-sm bg-transparent no-toggle'; responsables.forEach(resp => { const option = document.createElement('option'); option.value = resp; option.textContent = resp; if (item.responsable === resp) option.selected = true; responsibleSelect.add(option); }); responsibleSelect.onchange = (e) => handleFieldChange(e, item.id, 'responsable'); taskRow.appendChild(responsibleSelect);
                             const deadlineDiv = document.createElement('div'); deadlineDiv.className = 'flex items-center text-sm no-toggle'; if (item.deadline && new Date(item.deadline + 'T00:00:00') < today && item.estado !== 'Realizado' && item.estado !== 'Suspendido') { deadlineDiv.classList.add('text-red-600', 'font-bold'); } let repeatIcon = ''; if (item.recurrence && item.recurrence.type !== 'none') { repeatIcon = `<svg class="h-4 w-4 ml-1 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m-15.357-2a8.001 8.001 0 0015.357 2m0 0H15" /></svg>`; } deadlineDiv.innerHTML = `<svg class="h-5 w-5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg><span class="flex-1 truncate">${item.deadline || 'Sin fecha'}</span> ${repeatIcon}`; taskRow.appendChild(deadlineDiv);
                             const statusSelect = document.createElement('select'); statusSelect.className = 'status-select p-2 border rounded-md text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-institutional no-toggle w-full'; statusOrder.forEach(status => { const option = document.createElement('option'); option.value = status; option.textContent = status; if (item.estado === status) option.selected = true; statusSelect.add(option); }); applyStatusStyles(statusSelect, item.estado); statusSelect.addEventListener('change', (e) => handleStatusChange(e, item.id)); taskRow.appendChild(statusSelect);
-                            const actionsDiv = document.createElement('div'); actionsDiv.className = 'flex items-center gap-x-1 no-toggle justify-self-start md:justify-self-center'; const moveSelect = document.createElement('select'); moveSelect.className = 'text-xs p-1 border rounded bg-white hover:bg-gray-100 w-24'; moveSelect.innerHTML = `<option disabled selected>Mover...</option>`; rubros.filter(r => r !== item.rubro).forEach(r => { moveSelect.innerHTML += `<option value="${r}">${r}</option>`; }); moveSelect.addEventListener('change', (e) => handleMoveTask(e, item.id)); const editBtn = document.createElement('button'); editBtn.className = 'p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-100 rounded-full transition-colors'; editBtn.innerHTML = `<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>`; editBtn.onclick = () => handleShowEditModal(item); const deleteBtn = document.createElement('button'); deleteBtn.className = 'p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-100 rounded-full transition-colors'; deleteBtn.innerHTML = `<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`; deleteBtn.onclick = () => handleDeleteTask(item.id); actionsDiv.appendChild(moveSelect); actionsDiv.appendChild(editBtn); actionsDiv.appendChild(deleteBtn); taskRow.appendChild(actionsDiv); listItem.appendChild(taskRow); list.appendChild(listItem);
+                            
+                            const actionsDiv = document.createElement('div'); actionsDiv.className = 'flex items-center gap-x-1 no-toggle justify-self-start md:justify-self-center'; 
+                            
+                            // Botón CheckList
+                            if (item.subtasks && item.subtasks.length > 0) {
+                                const checkBtn = document.createElement('button');
+                                checkBtn.className = 'p-1.5 text-gray-500 hover:text-green-600 hover:bg-green-100 rounded-full transition-colors';
+                                checkBtn.innerHTML = `📋`; // Icono simple
+                                checkBtn.title = "Ver Subtareas";
+                                checkBtn.onclick = () => { document.getElementById(`subtasks-container-${item.id}`).classList.toggle('hidden'); };
+                                actionsDiv.appendChild(checkBtn);
+                            }
+
+                            const editBtn = document.createElement('button'); editBtn.className = 'p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-100 rounded-full transition-colors'; editBtn.innerHTML = `<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>`; editBtn.onclick = () => handleShowEditModal(item); 
+                            const deleteBtn = document.createElement('button'); deleteBtn.className = 'p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-100 rounded-full transition-colors'; deleteBtn.innerHTML = `<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`; deleteBtn.onclick = () => handleDeleteTask(item.id); 
+                            actionsDiv.appendChild(editBtn); actionsDiv.appendChild(deleteBtn); taskRow.appendChild(actionsDiv); listItem.appendChild(taskRow); list.appendChild(listItem);
                         });
                         content.appendChild(list);
                     }
                 }
                 accordionItem.appendChild(header); accordionItem.appendChild(content); fragment.appendChild(accordionItem); 
             });
-            container.appendChild(fragment); updateSummary();
+            container.appendChild(fragment); 
+            
+            // Listeners para checkboxes de subtareas
+            document.querySelectorAll('.subtask-check').forEach(cb => {
+                cb.addEventListener('change', (e) => {
+                    const taskId = e.target.dataset.taskId;
+                    const subtaskIdx = e.target.dataset.subtaskIdx;
+                    const task = checklistData.find(t => t.id === taskId);
+                    if(task && task.subtasks) {
+                        task.subtasks[subtaskIdx].done = e.target.checked;
+                        database.ref('tasks').child(taskId).child('subtasks').set(task.subtasks);
+                    }
+                });
+            });
+            
+            updateSummary();
         }
 
         function updateSummary() {
@@ -352,14 +386,85 @@
         function formatDate(date) { return date.toISOString().split('T')[0]; }
         function getNthDayOfMonth(year, month, ordinal, dayOfWeek) { const date = new Date(year, month, 1); dayOfWeek = parseInt(dayOfWeek); ordinal = parseInt(ordinal); if (ordinal === 5) { date.setMonth(date.getMonth() + 1); date.setDate(0); const daysToSubtract = (date.getDay() - dayOfWeek + 7) % 7; date.setDate(date.getDate() - daysToSubtract); } else { let day = date.getDay(); let dayOffset = (dayOfWeek - day + 7) % 7; date.setDate(1 + dayOffset + (ordinal - 1) * 7); } return date; }
         function calculateNextDueDate(task) { const today = new Date(); today.setHours(0, 0, 0, 0); let baseDate = (task.deadline && task.deadline !== "") ? new Date(task.deadline + 'T00:00:00') : today; if (baseDate < today) baseDate = today; let nextDate = new Date(baseDate.getTime()); const rule = task.recurrence; if (!rule || rule.type === 'none') return task.deadline; switch (rule.type) { case 'daily': nextDate.setDate(nextDate.getDate() + 1); break; case 'weekly': const targetDay = parseInt(rule.weeklyOn); nextDate.setDate(nextDate.getDate() + 1); while (nextDate.getDay() !== targetDay) { nextDate.setDate(nextDate.getDate() + 1); } break; case 'periodically': nextDate.setDate(nextDate.getDate() + parseInt(rule.periodicallyDays || 1)); break; case 'annually': nextDate.setFullYear(nextDate.getFullYear() + 1); break; case 'monthly': let currentMonth = nextDate.getMonth(); let currentYear = nextDate.getFullYear(); if (rule.monthlyType === 'dayOfMonth') { let targetDayOfMonth = parseInt(rule.monthlyDay); nextDate.setMonth(currentMonth + 1); nextDate.setDate(targetDayOfMonth); if (nextDate.getDate() !== targetDayOfMonth) nextDate.setDate(0); } else if (rule.monthlyType === 'dayOfWeek') { let nextMonth = new Date(currentYear, currentMonth + 1, 1); nextDate = getNthDayOfMonth(nextMonth.getFullYear(), nextMonth.getMonth(), rule.monthlyOrdinal, rule.monthlyDayOfWeek); } break; default: return formatDate(today); } return formatDate(nextDate); }
-        function handleStatusChange(event, itemId) { const itemIndex = checklistData.findIndex(d => d.id === itemId); if (itemIndex === -1) return; const task = checklistData[itemIndex]; const oldState = task.estado; const newState = event.target.value; if (newState === 'Realizado' && oldState !== 'Realizado') { if (task.recurrence && task.recurrence.type !== 'none' && task.deadline && task.deadline !== "") { const newDeadline = calculateNextDueDate(task); database.ref('tasks').child(itemId).update({ estado: 'Pendiente', deadline: newDeadline }); } else { database.ref('tasks').child(itemId).child('estado').set(newState); } } else { database.ref('tasks').child(itemId).child('estado').set(newState); } }
+        
+        function handleStatusChange(event, itemId) { 
+            const itemIndex = checklistData.findIndex(d => d.id === itemId); if (itemIndex === -1) return; const task = checklistData[itemIndex]; const oldState = task.estado; const newState = event.target.value;
+            // Lógica modificada para recurrencia
+            if (newState === 'Realizado' && oldState !== 'Realizado') { 
+                if (task.recurrence && task.recurrence.type !== 'none' && task.deadline && task.deadline !== "") { 
+                    const newDeadline = calculateNextDueDate(task); 
+                    // CREAR NUEVA TAREA (COPIA)
+                    const newTask = {
+                        ...task,
+                        deadline: newDeadline,
+                        estado: 'Pendiente',
+                        subtasks: task.subtasks ? task.subtasks.map(st => ({ ...st, done: false })) : [] // Reiniciar checklist
+                    };
+                    delete newTask.id; // Eliminar ID viejo para que genere uno nuevo
+                    database.ref('tasks').push(newTask);
+                    
+                    // DEJAR LA VIEJA COMO REALIZADO
+                    database.ref('tasks').child(itemId).child('estado').set('Realizado');
+                } else { 
+                    database.ref('tasks').child(itemId).child('estado').set(newState); 
+                } 
+            } else { 
+                database.ref('tasks').child(itemId).child('estado').set(newState); 
+            } 
+        }
+        
         function handleFieldChange(event, itemId, field) { database.ref('tasks').child(itemId).child(field).set(event.target.value); }
         function handleMoveTask(event, itemId) { database.ref('tasks').child(itemId).child('rubro').set(event.target.value); }
         function handleDeleteTask(itemId) { const taskToDelete = checklistData.find(d => d.id === itemId); if (confirm(`¿Estás seguro de que quieres eliminar la tarea "${taskToDelete.requerimiento}"?`)) { database.ref('tasks').child(itemId).remove(); } }
-        function handleShowEditModal(item) { const form = document.getElementById('add-task-form'); form.reset(); updateRecurrenceUI('none'); document.getElementById('form-title').textContent = "Editar Tarea"; document.getElementById('edit-task-id').value = item.id; document.getElementById('requerimiento').value = item.requerimiento; document.getElementById('rubro').value = item.rubro; document.getElementById('responsable').value = item.responsable; document.getElementById('prioridad').value = item.prioridad; document.getElementById('deadline').value = item.deadline || ''; document.getElementById('costo').value = item.costo || ''; const rule = item.recurrence || { type: 'none' }; document.getElementById('recurrence-type').value = rule.type; updateRecurrenceUI(rule.type); if (rule.type === 'weekly') { document.getElementById('recurrence-weekly-on').value = rule.weeklyOn || '1'; } else if (rule.type === 'monthly') { if (rule.monthlyType === 'dayOfWeek') { form.elements.monthlyType.value = 'dayOfWeek'; document.getElementById('recurrence-monthly-ordinal').value = rule.monthlyOrdinal || '1'; document.getElementById('recurrence-monthly-dayofweek').value = rule.monthlyDayOfWeek || '0'; document.getElementById('monthly-type-weekday').checked = true; } else { form.elements.monthlyType.value = 'dayOfMonth'; document.getElementById('recurrence-monthly-day').value = rule.monthlyDay || ''; document.getElementById('monthly-type-day').checked = true; } } else if (rule.type === 'periodically') { document.getElementById('recurrence-periodically-days').value = rule.periodicallyDays || ''; } document.getElementById('form-overlay').classList.add('visible'); }
-        function handleAddRubro(event) { event.preventDefault(); const input = document.getElementById('new-rubro-name'); const newRubroName = input.value; if (newRubroName && newRubroName.trim() !== "") { const trimmedName = newRubroName.trim(); if (rubros.includes(trimmedName)) { alert("Ese rubro ya existe."); return; } const eliminadoIndex = rubros.indexOf('Eliminado'); if (eliminadoIndex > -1) { rubros.splice(eliminadoIndex, 0, trimmedName); } else { rubros.push(trimmedName); } database.ref('rubros').set(rubros).then(() => { renderRubrosModal(); updateRubroDropdown(); renderChecklist(); }); input.value = ''; } }
-        function handleEditRubro(oldName) { const newName = prompt("Editar nombre del rubro:", oldName); if (!newName || newName.trim() === "" || newName === oldName) return; const trimmedName = newName.trim(); if (rubros.includes(trimmedName)) { alert("Ese nombre de rubro ya existe."); return; } const index = rubros.indexOf(oldName); if (index > -1) rubros[index] = trimmedName; const tasksToUpdate = checklistData.filter(task => task.rubro === oldName); const updates = {}; tasksToUpdate.forEach(task => { updates[`/tasks/${task.id}/rubro`] = trimmedName; }); updates[`/rubros`] = rubros; database.ref().update(updates).then(() => { renderRubrosModal(); updateRubroDropdown(); }); }
-        function handleDeleteRubro(rubroToDelete) { if (protectedRubros.includes(rubroToDelete)) { alert('Este rubro está protegido y no se puede eliminar.'); return; } const tasksToMove = checklistData.filter(task => task.rubro === rubroToDelete); const warningMessage = `¿Estás seguro de que quieres eliminar el rubro "${rubroToDelete}"?\n\nTodas las tareas (${tasksToMove.length}) dentro de este rubro se moverán a "Eliminado".`; if (confirm(warningMessage)) { rubros = rubros.filter(r => r !== rubroToDelete); const updates = {}; tasksToMove.forEach(task => { updates[`/tasks/${task.id}/rubro`] = 'Eliminado'; }); updates[`/rubros`] = rubros; database.ref().update(updates).then(() => { renderRubrosModal(); updateRubroDropdown(); }); } }
+        
+        // --- GESTIÓN DE SUBTAREAS EN MODAL ---
+        const newSubtaskInput = document.getElementById('new-subtask-input');
+        const addSubtaskBtn = document.getElementById('add-subtask-btn');
+        const subtasksListEdit = document.getElementById('subtasks-list-edit');
+
+        addSubtaskBtn.addEventListener('click', () => {
+            const text = newSubtaskInput.value.trim();
+            if(text) {
+                editingSubtasks.push({ text: text, done: false });
+                renderEditingSubtasks();
+                newSubtaskInput.value = '';
+            }
+        });
+
+        function renderEditingSubtasks() {
+            subtasksListEdit.innerHTML = '';
+            editingSubtasks.forEach((st, idx) => {
+                const li = document.createElement('li');
+                li.className = 'flex justify-between items-center bg-white p-2 rounded border';
+                li.innerHTML = `<span>${st.text}</span> <button type="button" class="text-red-500 hover:text-red-700 font-bold" onclick="removeEditingSubtask(${idx})">&times;</button>`;
+                subtasksListEdit.appendChild(li);
+            });
+        }
+        
+        // Función global para poder llamarla desde el onclick del HTML generado
+        window.removeEditingSubtask = function(index) {
+            editingSubtasks.splice(index, 1);
+            renderEditingSubtasks();
+        };
+
+        function handleShowEditModal(item) { 
+            const form = document.getElementById('add-task-form'); form.reset(); updateRecurrenceUI('none'); 
+            document.getElementById('form-title').textContent = "Editar Tarea"; document.getElementById('edit-task-id').value = item.id;
+            document.getElementById('requerimiento').value = item.requerimiento; document.getElementById('rubro').value = item.rubro; document.getElementById('responsable').value = item.responsable; document.getElementById('prioridad').value = item.prioridad; document.getElementById('deadline').value = item.deadline || ''; document.getElementById('costo').value = item.costo || ''; 
+            
+            // Cargar subtareas
+            editingSubtasks = item.subtasks ? [...item.subtasks] : [];
+            renderEditingSubtasks();
+
+            const rule = item.recurrence || { type: 'none' }; document.getElementById('recurrence-type').value = rule.type; updateRecurrenceUI(rule.type);
+            if (rule.type === 'weekly') { document.getElementById('recurrence-weekly-on').value = rule.weeklyOn || '1'; } else if (rule.type === 'monthly') { if (rule.monthlyType === 'dayOfWeek') { form.elements.monthlyType.value = 'dayOfWeek'; document.getElementById('recurrence-monthly-ordinal').value = rule.monthlyOrdinal || '1'; document.getElementById('recurrence-monthly-dayofweek').value = rule.monthlyDayOfWeek || '0'; document.getElementById('monthly-type-weekday').checked = true; } else { form.elements.monthlyType.value = 'dayOfMonth'; document.getElementById('recurrence-monthly-day').value = rule.monthlyDay || ''; document.getElementById('monthly-type-day').checked = true; } } else if (rule.type === 'periodically') { document.getElementById('recurrence-periodically-days').value = rule.periodicallyDays || ''; } 
+            document.getElementById('form-overlay').classList.add('visible'); 
+        }
+
+        // --- FUNCIONES DE GESTIÓN ---
+        function handleAddRubro(event) { event.preventDefault(); const input = document.getElementById('new-rubro-name'); const newRubroName = input.value; if (newRubroName && newRubroName.trim() !== "") { const trimmedName = newRubroName.trim(); if (rubros.includes(trimmedName)) { alert("Ese proyecto ya existe."); return; } const eliminadoIndex = rubros.indexOf('Eliminado'); if (eliminadoIndex > -1) { rubros.splice(eliminadoIndex, 0, trimmedName); } else { rubros.push(trimmedName); } database.ref('rubros').set(rubros).then(() => { renderRubrosModal(); updateRubroDropdown(); renderChecklist(); }); input.value = ''; } }
+        function handleEditRubro(oldName) { const newName = prompt("Editar nombre del proyecto:", oldName); if (!newName || newName.trim() === "" || newName === oldName) return; const trimmedName = newName.trim(); if (rubros.includes(trimmedName)) { alert("Ese nombre de proyecto ya existe."); return; } const index = rubros.indexOf(oldName); if (index > -1) rubros[index] = trimmedName; const tasksToUpdate = checklistData.filter(task => task.rubro === oldName); const updates = {}; tasksToUpdate.forEach(task => { updates[`/tasks/${task.id}/rubro`] = trimmedName; }); updates[`/rubros`] = rubros; database.ref().update(updates).then(() => { renderRubrosModal(); updateRubroDropdown(); }); }
+        function handleDeleteRubro(rubroToDelete) { if (protectedRubros.includes(rubroToDelete)) { alert('Este proyecto está protegido y no se puede eliminar.'); return; } const tasksToMove = checklistData.filter(task => task.rubro === rubroToDelete); const warningMessage = `¿Estás seguro de que quieres eliminar el proyecto "${rubroToDelete}"?\n\nTodas las tareas (${tasksToMove.length}) dentro de este proyecto se moverán a "Eliminado".`; if (confirm(warningMessage)) { rubros = rubros.filter(r => r !== rubroToDelete); const updates = {}; tasksToMove.forEach(task => { updates[`/tasks/${task.id}/rubro`] = 'Eliminado'; }); updates[`/rubros`] = rubros; database.ref().update(updates).then(() => { renderRubrosModal(); updateRubroDropdown(); }); } }
         function handleAddResponsable(event) { event.preventDefault(); const input = document.getElementById('new-responsable-name'); const newResponsableName = input.value; if (newResponsableName && newResponsableName.trim() !== "") { const trimmedName = newResponsableName.trim(); if (responsables.includes(trimmedName)) { alert("Ese responsable ya existe."); return; } responsables.push(trimmedName); database.ref('responsables').set(responsables).then(() => { renderResponsablesModal(); updateResponsableDropdown(); renderFilterModal(); }); input.value = ''; } }
         function renderRubrosModal() { const container = document.getElementById('rubros-list-container'); container.innerHTML = ''; rubros.forEach(name => { const isProtected = protectedRubros.includes(name); const itemDiv = document.createElement('div'); itemDiv.className = 'flex items-center justify-between p-2 border-b'; const nameSpan = document.createElement('span'); nameSpan.textContent = name; nameSpan.className = isProtected ? 'text-gray-500' : 'text-gray-800'; itemDiv.appendChild(nameSpan); const buttonsDiv = document.createElement('div'); buttonsDiv.className = 'flex gap-2'; if (!isProtected) { const editBtn = document.createElement('button'); editBtn.className = 'edit-rubro-btn text-blue-600 hover:text-blue-800 text-sm'; editBtn.textContent = 'Editar'; editBtn.dataset.rubroName = name; buttonsDiv.appendChild(editBtn); const deleteBtn = document.createElement('button'); deleteBtn.className = 'delete-rubro-btn text-red-600 hover:text-red-800 text-sm'; deleteBtn.textContent = 'Eliminar'; deleteBtn.dataset.rubroName = name; buttonsDiv.appendChild(deleteBtn); } itemDiv.appendChild(buttonsDiv); container.appendChild(itemDiv); }); document.getElementById('manage-rubros-overlay').classList.add('visible'); }
         function renderResponsablesModal() { const container = document.getElementById('responsables-list-container'); container.innerHTML = ''; responsables.forEach(name => { const isProtected = protectedResponsables.includes(name); const itemDiv = document.createElement('div'); itemDiv.className = 'flex items-center justify-between p-2 border-b'; const nameSpan = document.createElement('span'); nameSpan.textContent = name; nameSpan.className = isProtected ? 'text-gray-500' : 'text-gray-800'; itemDiv.appendChild(nameSpan); const buttonsDiv = document.createElement('div'); buttonsDiv.className = 'flex gap-2'; if (!isProtected) { const editBtn = document.createElement('button'); editBtn.className = 'edit-responsable-btn text-blue-600 hover:text-blue-800 text-sm'; editBtn.textContent = 'Editar'; editBtn.dataset.responsableName = name; buttonsDiv.appendChild(editBtn); const deleteBtn = document.createElement('button'); deleteBtn.className = 'delete-responsable-btn text-red-600 hover:text-red-800 text-sm'; deleteBtn.textContent = 'Eliminar'; deleteBtn.dataset.responsableName = name; buttonsDiv.appendChild(deleteBtn); } itemDiv.appendChild(buttonsDiv); container.appendChild(itemDiv); }); document.getElementById('manage-responsables-overlay').classList.add('visible'); }
@@ -382,9 +487,41 @@
             const importOverlay = document.getElementById('import-overlay'); const showImportModalBtn = document.getElementById('show-import-modal-btn'); const closeImportBtn = document.getElementById('close-import-btn'); const closeImportBtnBottom = document.getElementById('close-import-btn-bottom'); const downloadTemplateBtn = document.getElementById('download-template-btn'); const processImportBtn = document.getElementById('process-import-btn');
 
             showImportModalBtn.addEventListener('click', () => { formOverlay.classList.remove('visible'); importOverlay.classList.add('visible'); }); closeImportBtn.addEventListener('click', () => importOverlay.classList.remove('visible')); closeImportBtnBottom.addEventListener('click', () => importOverlay.classList.remove('visible')); downloadTemplateBtn.addEventListener('click', handleDownloadTemplate); processImportBtn.addEventListener('click', handleProcessImport);
-            addTaskBtn.addEventListener('click', () => { document.getElementById('form-title').textContent = "Añadir Tarea"; addTaskForm.reset(); updateRecurrenceUI('none'); document.getElementById('edit-task-id').value = ''; formOverlay.classList.add('visible'); });
+            
+            // Añadir Tarea: Limpiar y mostrar modal
+            addTaskBtn.addEventListener('click', () => { 
+                document.getElementById('form-title').textContent = "Añadir Tarea"; 
+                addTaskForm.reset(); 
+                editingSubtasks = []; // Reiniciar subtareas
+                renderEditingSubtasks();
+                updateRecurrenceUI('none'); 
+                document.getElementById('edit-task-id').value = ''; 
+                formOverlay.classList.add('visible'); 
+            });
+            
             closeFormBtn.addEventListener('click', () => formOverlay.classList.remove('visible')); recurrenceTypeSelect.addEventListener('change', (e) => updateRecurrenceUI(e.target.value));
-            addTaskForm.addEventListener('submit', (e) => { e.preventDefault(); const formData = new FormData(addTaskForm); const editId = formData.get('edit-task-id'); const recurrence = { type: formData.get('recurrence-type'), weeklyOn: formData.get('recurrence-weekly-on'), monthlyType: formData.get('monthlyType'), monthlyDay: formData.get('recurrence-monthly-day'), monthlyOrdinal: formData.get('recurrence-monthly-ordinal'), monthlyDayOfWeek: formData.get('recurrence-monthly-dayofweek'), periodicallyDays: formData.get('recurrence-periodically-days'), }; const taskData = { rubro: formData.get('rubro'), requerimiento: formData.get('requerimiento'), responsable: formData.get('responsable'), deadline: formData.get('deadline') || '', prioridad: formData.get('prioridad'), costo: formData.get('costo'), recurrence: recurrence, }; if (editId) { database.ref('tasks').child(editId).update(taskData); } else { const newId = database.ref('tasks').push().key; database.ref('tasks').child(newId).set({ ...taskData, estado: 'Pendiente' }); } addTaskForm.reset(); formOverlay.classList.remove('visible'); });
+            
+            // Guardar Tarea (Submit)
+            addTaskForm.addEventListener('submit', (e) => { 
+                e.preventDefault(); 
+                const formData = new FormData(addTaskForm); 
+                const editId = formData.get('edit-task-id'); 
+                const recurrence = { type: formData.get('recurrence-type'), weeklyOn: formData.get('recurrence-weekly-on'), monthlyType: formData.get('monthlyType'), monthlyDay: formData.get('recurrence-monthly-day'), monthlyOrdinal: formData.get('recurrence-monthly-ordinal'), monthlyDayOfWeek: formData.get('recurrence-monthly-dayofweek'), periodicallyDays: formData.get('recurrence-periodically-days'), }; 
+                const taskData = { 
+                    rubro: formData.get('rubro'), 
+                    requerimiento: formData.get('requerimiento'), 
+                    responsable: formData.get('responsable'), 
+                    deadline: formData.get('deadline') || '', 
+                    prioridad: formData.get('prioridad'), 
+                    costo: formData.get('costo'), 
+                    recurrence: recurrence,
+                    subtasks: editingSubtasks // Guardar subtareas
+                }; 
+                if (editId) { database.ref('tasks').child(editId).update(taskData); } else { const newId = database.ref('tasks').push().key; database.ref('tasks').child(newId).set({ ...taskData, estado: 'Pendiente' }); } 
+                addTaskForm.reset(); 
+                formOverlay.classList.remove('visible'); 
+            });
+            
             exportBtn.addEventListener('click', exportToPDF);
             manageRubrosBtn.addEventListener('click', renderRubrosModal); closeManageRubrosBtn.addEventListener('click', () => document.getElementById('manage-rubros-overlay').classList.remove('visible')); addRubroForm.addEventListener('submit', handleAddRubro);
             rubrosListContainer.addEventListener('click', (event) => { const editButton = event.target.closest('.edit-rubro-btn'); const deleteButton = event.target.closest('.delete-rubro-btn'); if (editButton) handleEditRubro(editButton.dataset.rubroName); if (deleteButton) handleDeleteRubro(deleteButton.dataset.rubroName); });
